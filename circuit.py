@@ -10,7 +10,7 @@ def int_output(method):
     def _wrapper(*args, **kwargs):
         output = method(*args, **kwargs)
         if isinstance(output, Iterable):
-            return [int(i) for i in output]
+            return [int(int(i) > 0) for i in output]
         else:
             return int(output)
 
