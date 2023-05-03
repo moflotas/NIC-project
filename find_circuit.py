@@ -4,6 +4,7 @@ import numpy as np
 from circuit import Circuit, int_output, arguments
 from collections import Callable
 from deap import gp, creator, base, tools, algorithms
+from utils import nodes_count
 
 
 def find_circuit(function: Callable, pop_size=300, gens=200, operators=None, verbose=True):
@@ -11,8 +12,8 @@ def find_circuit(function: Callable, pop_size=300, gens=200, operators=None, ver
 
     pset = gp.PrimitiveSet("MAIN", circ.num_inputs)
     if not operators:
-        operators = [operator.and_, operator.not_, operator.xor]
-    operators = [i for i in operators if i != operator.or_]
+        operators = [operator.and_, operator.not_, operator.or_, operator.xor]
+    # operators = [i for i in operators if i != operator.xor]
     for op in operators:
         arity = len(arguments(op))
         pset.addPrimitive(op, arity)
@@ -26,7 +27,7 @@ def find_circuit(function: Callable, pop_size=300, gens=200, operators=None, ver
         modi_i = gp.Modi(i)
         pset.addPrimitive(modi_i, 1, name=str(modi_i))
 
-    creator.create("FitnessMin", base.Fitness, weights=(1.0, -1.0))
+    creator.create("FitnessMin", base.Fitness, weights=(1.0, -1.0, -1.0))
     creator.create("Individual", gp.MultiOutputTree, num_outputs=circ.num_outputs, fitness=creator.FitnessMin)
 
     toolbox = base.Toolbox()
@@ -35,21 +36,16 @@ def find_circuit(function: Callable, pop_size=300, gens=200, operators=None, ver
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("compile", gp.compile, pset=pset)
 
-    def nodes_count(individual):
-        count = 0
-        for node in individual:
-            count += int(node.arity != 0)
-
-        return count
-
     def eval_circuit(individual, circuit):
         # Transform the tree expression in a callable function
         func = int_output(toolbox.compile(expr=individual))
         valid_fitness = circuit.fitness(func)
-        # size_fitness = len(individual)
-        size_fitness = nodes_count(individual)
+
+        size_fitness, gate_fitness = nodes_count(individual)
         size_fitness = size_fitness if valid_fitness == 1 else np.inf
-        return valid_fitness, size_fitness
+        gate_fitness = gate_fitness if valid_fitness == 1 else np.inf
+
+        return valid_fitness, size_fitness, gate_fitness
 
     toolbox.register("evaluate", eval_circuit, circuit=circ)
     toolbox.register("select", tools.selTournament, tournsize=3)
@@ -58,8 +54,9 @@ def find_circuit(function: Callable, pop_size=300, gens=200, operators=None, ver
     toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
 
     stats_fit = tools.Statistics(lambda ind: ind.fitness.values[0])
-    stats_size = tools.Statistics(lambda ind: nodes_count(ind))
-    mstats = tools.MultiStatistics(fitness=stats_fit, size=stats_size)
+    stats_size = tools.Statistics(lambda ind: nodes_count(ind)[0])
+    stats_gates = tools.Statistics(lambda ind: nodes_count(ind)[1])
+    mstats = tools.MultiStatistics(fitness=stats_fit, size=stats_size, gates=stats_gates)
     mstats.register("avg", np.mean)
     mstats.register("max", np.max)
 
