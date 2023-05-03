@@ -10,6 +10,20 @@ def sum3(a0, a1, a2, b0, b1, b2):
     return z_bits
 
 
+def sum2(a0, a1, b0, b1):
+    a = a0 * 2 + a1
+    b = b0 * 2 + b1
+    z = a + b
+    z_bits = [int(j) for j in bin(z)[2:].rjust(3, '0')]
+    return z_bits
+
+
+def sum1(a0, b0):
+    z = a0 + b0
+    z_bits = [int(j) for j in bin(z)[2:].rjust(2, '0')]
+    return z_bits
+
+
 def or_and(x, y):
     return x and y, x or y
 
@@ -34,7 +48,7 @@ def eq2(x, y, z):
     return x == y == z,
 
 
-hof, pop, log = find_circuit(xor3, pop_size=500, gens=300)
+hof, pop, log = find_circuit(xor3, pop_size=500, gens=200)
 best_ind = hof[0]
 str(best_ind)
 plot_modi_tree(best_ind, visualize_output=True)

@@ -48,6 +48,7 @@ class Circuit:
         valid = 0
         function = int_output(function)
         for i, inp in enumerate(self.inputs):
-            valid += int(function(*inp) == self.outputs[i])
+            pred_out = function(*inp)
+            valid += sum([int(pred_out[j] == self.outputs[i][j]) for j in range(len(pred_out))])
 
-        return valid / len(self.inputs)
+        return valid / (len(self.inputs) * self.num_inputs)

@@ -55,13 +55,12 @@ def find_circuit(function: Callable, pop_size=300, gens=200, operators=None, ver
     toolbox.register("expr_mut", gp.genHalfAndHalf, min_=0, max_=2)
     toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
 
-    toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=17))
-    toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=17))
+    toolbox.decorate("mate", gp.staticLimit(key=len, max_value=150))
+    toolbox.decorate("mutate", gp.staticLimit(key=len, max_value=150))
 
     stats_fit = tools.Statistics(lambda ind: ind.fitness.values[0])
-    stats_size = tools.Statistics(lambda ind: nodes_count(ind)[0])
     stats_gates = tools.Statistics(lambda ind: nodes_count(ind)[1])
-    mstats = tools.MultiStatistics(fitness=stats_fit, size=stats_size, gates=stats_gates)
+    mstats = tools.MultiStatistics(fitness=stats_fit, gates=stats_gates)
     mstats.register("avg", np.mean)
     mstats.register("max", np.max)
 
