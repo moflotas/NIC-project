@@ -4,7 +4,7 @@ import numpy as np
 from circuit import Circuit, int_output, arguments
 from collections import Callable
 from deap import gp, creator, base, tools, algorithms
-from utils import nodes_count
+from utils import nodes_count, same_modi_count
 
 
 def find_circuit(function: Callable, pop_size=300, gens=200, operators=None, verbose=True):
@@ -27,7 +27,7 @@ def find_circuit(function: Callable, pop_size=300, gens=200, operators=None, ver
         modi_i = gp.Modi(i)
         pset.addPrimitive(modi_i, 1, name=str(modi_i))
 
-    creator.create("FitnessMin", base.Fitness, weights=(1.0, -1.0, -1.0))
+    creator.create("FitnessMin", base.Fitness, weights=(1.0, -1.0))
     creator.create("Individual", gp.MultiOutputTree, num_outputs=circ.num_outputs, fitness=creator.FitnessMin)
 
     toolbox = base.Toolbox()
@@ -45,13 +45,16 @@ def find_circuit(function: Callable, pop_size=300, gens=200, operators=None, ver
         size_fitness = size_fitness if valid_fitness == 1 else np.inf
         gate_fitness = gate_fitness if valid_fitness == 1 else np.inf
 
-        return valid_fitness, size_fitness, gate_fitness
+        return valid_fitness, gate_fitness
 
     toolbox.register("evaluate", eval_circuit, circuit=circ)
     toolbox.register("select", tools.selTournament, tournsize=3)
     toolbox.register("mate", gp.cxOnePoint)
     toolbox.register("expr_mut", gp.genFull, min_=0, max_=2)
     toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
+
+    toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=17))
+    toolbox.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=17))
 
     stats_fit = tools.Statistics(lambda ind: ind.fitness.values[0])
     stats_size = tools.Statistics(lambda ind: nodes_count(ind)[0])
