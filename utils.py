@@ -7,6 +7,13 @@ import networkx as nx
 from collections import Counter
 
 
+BIG_INT = int(1e6)
+
+
+def dead_end_(x, y):
+    return BIG_INT
+
+
 def same_modi_count(individual):
     count = Counter()
     for node in individual:
@@ -22,7 +29,7 @@ def nodes_count(individual):
     for node in individual:
         if node.arity != 0:
             count_size += 1
-            if 'modi' not in node.name:
+            if 'modi' not in node.name and 'end' not in node.name:
                 count_gate += 1
 
     or_count = str(individual).count('+')
@@ -64,6 +71,17 @@ def plot_modi_tree(individual, visualize_output=False):
         # delete modis
         nodes = [n for n in nodes if n not in modis]
         labels = {n: labels[n] for n in labels if n not in modis}
+
+        # delete ends
+        ends = [i for i in labels if 'end' in labels[i]]
+        nodes = [n for n in nodes if n not in ends]
+        edges = [e for e in edges if e[0] not in ends and e[1] not in ends]
+        labels = {n: labels[n] for n in labels if n not in ends}
+
+        # delete alone nodes
+        flatten_edges = [item for sublist in edges for item in sublist]
+        nodes = [n for n in nodes if n in flatten_edges]
+        labels = {n: labels[n] for n in labels if n in flatten_edges}
 
     g = nx.DiGraph()
     g.add_nodes_from(nodes)

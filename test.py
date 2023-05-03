@@ -26,8 +26,16 @@ def not_or(x, y):
     return not x, (not x) or y
 
 
-hof, pop, log = find_circuit(or_and, pop_size=1000, gens=300)
-best_ind = hof[0]
+def xor3(x, y, z):
+    return x and y, x or y, (x and not y) or (y and not x)
 
+
+def eq2(x, y, z):
+    return x == y == z,
+
+
+hof, pop, log = find_circuit(xor3, pop_size=500, gens=300)
+best_ind = hof[0]
+str(best_ind)
 plot_modi_tree(best_ind, visualize_output=True)
 print(best_ind, best_ind.fitness)

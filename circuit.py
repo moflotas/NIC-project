@@ -1,5 +1,6 @@
 from inspect import signature
 from collections.abc import Sized, Iterable
+from utils import BIG_INT
 
 
 def arguments(method):
@@ -9,6 +10,9 @@ def arguments(method):
 def int_output(method):
     def _wrapper(*args, **kwargs):
         output = method(*args, **kwargs)
+        if BIG_INT in output:
+            return output
+
         if isinstance(output, Iterable):
             return [int(int(i) > 0) for i in output]
         else:

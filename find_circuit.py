@@ -4,7 +4,7 @@ import numpy as np
 from circuit import Circuit, int_output, arguments
 from collections import Callable
 from deap import gp, creator, base, tools, algorithms
-from utils import nodes_count, same_modi_count
+from utils import nodes_count, dead_end_
 
 
 def find_circuit(function: Callable, pop_size=300, gens=200, operators=None, verbose=True):
@@ -27,11 +27,13 @@ def find_circuit(function: Callable, pop_size=300, gens=200, operators=None, ver
         modi_i = gp.Modi(i)
         pset.addPrimitive(modi_i, 1, name=str(modi_i))
 
+    pset.addPrimitive(dead_end_, 2, name='end')
+
     creator.create("FitnessMin", base.Fitness, weights=(1.0, -1.0))
     creator.create("Individual", gp.MultiOutputTree, num_outputs=circ.num_outputs, fitness=creator.FitnessMin)
 
     toolbox = base.Toolbox()
-    toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=1, max_=2)
+    toolbox.register("expr", gp.genHalfAndHalf, pset=pset, min_=1, max_=4)
     toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("compile", gp.compile, pset=pset)
@@ -50,7 +52,7 @@ def find_circuit(function: Callable, pop_size=300, gens=200, operators=None, ver
     toolbox.register("evaluate", eval_circuit, circuit=circ)
     toolbox.register("select", tools.selTournament, tournsize=3)
     toolbox.register("mate", gp.cxOnePoint)
-    toolbox.register("expr_mut", gp.genFull, min_=0, max_=2)
+    toolbox.register("expr_mut", gp.genHalfAndHalf, min_=0, max_=2)
     toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
 
     toolbox.decorate("mate", gp.staticLimit(key=operator.attrgetter("height"), max_value=17))
