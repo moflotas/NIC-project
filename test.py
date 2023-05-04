@@ -53,9 +53,14 @@ def full_adder(x, y, z):
     return [int(j) for j in bin(x + y + z)[2:].rjust(2, '0')]
 
 
+def sum5(a, b, c, d, e):
+    z = a + b + c + d + e
+    return [int(j) for j in bin(z)[2:].rjust(3, '0')]
+
+
 if __name__ == '__main__':
     start = time()
-    hof, pop, log = find_circuit(sum2, pop_size=5000, gens=100)
+    hof, pop, log = find_circuit(full_adder, pop_size=50000, gens=200)
     best_ind = hof[0]
     str(best_ind)
     plot_modi_tree(best_ind, visualize_output=True)

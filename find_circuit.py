@@ -1,6 +1,8 @@
 import operator
 import numpy as np
-from pathos.multiprocessing import ProcessingPool as Pool
+from platform import system
+if system() != 'Windows':
+    from pathos.multiprocessing import ProcessingPool as Pool
 
 
 from circuit import Circuit, int_output, arguments
@@ -52,13 +54,13 @@ def find_circuit(function: Callable, pop_size=300, gens=200, operators=None, ver
         return valid_fitness, gate_fitness
 
     toolbox.register("evaluate", eval_circuit, circuit=circ)
-    toolbox.register("select", tools.selDoubleTournament, fitness_size=20, parsimony_size=1, fitness_first=False)
-    toolbox.register("mate", gp.cxOnePoint)
+    toolbox.register("select", tools.selDoubleTournament, fitness_size=10, parsimony_size=1, fitness_first=False)
+    toolbox.register("mate", gp.cxOnePointLeafBiased, termpb=0.68)
     toolbox.register("expr_mut", gp.genHalfAndHalf, min_=0, max_=2)
     toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
 
-    #toolbox.decorate("mate", gp.staticLimit(key=len, max_value=250))
-    #toolbox.decorate("mutate", gp.staticLimit(key=len, max_value=250))
+    toolbox.decorate("mate", gp.staticLimit(key=len, max_value=220))
+    toolbox.decorate("mutate", gp.staticLimit(key=len, max_value=220))
 
     stats_fit = tools.Statistics(lambda ind: ind.fitness.values[0])
     stats_gates = tools.Statistics(lambda ind: nodes_count(ind)[1])
@@ -66,16 +68,18 @@ def find_circuit(function: Callable, pop_size=300, gens=200, operators=None, ver
     mstats.register("avg", np.mean)
     mstats.register("max", np.max)
     
-    cpu_count = 4
-    print(f"CPU count: {cpu_count}")
-    pool = Pool(cpu_count)
-    toolbox.register("map", pool.map)
+    if system() != 'Windows':
+        cpu_count = 4
+        print(f"CPU count: {cpu_count}")
+        pool = Pool(cpu_count)
+        toolbox.register("map", pool.map)
     
     pop = toolbox.population(n=pop_size)
     hof = tools.HallOfFame(1)
 
-    pop, log = algorithms.eaSimple(pop, toolbox, 0.7, 0.6, gens, halloffame=hof, verbose=verbose, stats=mstats)
+    pop, log = algorithms.eaSimple(pop, toolbox, 0.7, 0.55, gens, halloffame=hof, verbose=verbose, stats=mstats)
     
-    pool.close()
+    if system() != 'Windows':
+        pool.close()
 
     return hof, pop, log
