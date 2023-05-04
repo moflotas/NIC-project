@@ -1,5 +1,6 @@
 from find_circuit import find_circuit
 from utils import plot_modi_tree, same_modi_count
+from circuit import Circuit
 
 
 def sum3(a0, a1, a2, b0, b1, b2):
@@ -48,7 +49,11 @@ def eq2(x, y, z):
     return x == y == z,
 
 
-hof, pop, log = find_circuit(xor3, pop_size=500, gens=200)
+def full_adder(x, y, z):
+    return [int(j) for j in bin(x + y + z)[2:].rjust(2, '0')]
+
+
+hof, pop, log = find_circuit(sum2, pop_size=500, gens=400)
 best_ind = hof[0]
 str(best_ind)
 plot_modi_tree(best_ind, visualize_output=True)

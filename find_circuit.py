@@ -1,5 +1,7 @@
 import operator
 import numpy as np
+import multiprocessing
+
 
 from circuit import Circuit, int_output, arguments
 from collections import Callable
@@ -51,12 +53,12 @@ def find_circuit(function: Callable, pop_size=300, gens=200, operators=None, ver
 
     toolbox.register("evaluate", eval_circuit, circuit=circ)
     toolbox.register("select", tools.selTournament, tournsize=3)
-    toolbox.register("mate", gp.cxOnePoint)
+    toolbox.register("mate", gp.cxOnePointLeafBiased, termpb=0.25)
     toolbox.register("expr_mut", gp.genHalfAndHalf, min_=0, max_=2)
     toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=pset)
 
-    toolbox.decorate("mate", gp.staticLimit(key=len, max_value=150))
-    toolbox.decorate("mutate", gp.staticLimit(key=len, max_value=150))
+    toolbox.decorate("mate", gp.staticLimit(key=len, max_value=250))
+    toolbox.decorate("mutate", gp.staticLimit(key=len, max_value=250))
 
     stats_fit = tools.Statistics(lambda ind: ind.fitness.values[0])
     stats_gates = tools.Statistics(lambda ind: nodes_count(ind)[1])
@@ -66,6 +68,6 @@ def find_circuit(function: Callable, pop_size=300, gens=200, operators=None, ver
 
     pop = toolbox.population(n=pop_size)
     hof = tools.HallOfFame(1)
-    pop, log = algorithms.eaSimple(pop, toolbox, 0.5, 0.1, gens, halloffame=hof, verbose=verbose, stats=mstats)
+    pop, log = algorithms.eaSimple(pop, toolbox, 0.5, 0.2, gens, halloffame=hof, verbose=verbose, stats=mstats)
 
     return hof, pop, log

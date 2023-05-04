@@ -51,4 +51,4 @@ class Circuit:
             pred_out = function(*inp)
             valid += sum([int(pred_out[j] == self.outputs[i][j]) for j in range(len(pred_out))])
 
-        return valid / (len(self.inputs) * self.num_inputs)
+        return valid / (len(self.inputs) * self.num_outputs)
