@@ -1,6 +1,6 @@
 from find_circuit import find_circuit
-from utils import plot_modi_tree, same_modi_count
-from circuit import Circuit
+from utils import plot_modi_tree
+from time import time
 
 
 def sum3(a0, a1, a2, b0, b1, b2):
@@ -53,12 +53,12 @@ def full_adder(x, y, z):
     return [int(j) for j in bin(x + y + z)[2:].rjust(2, '0')]
 
 
-def ex1(a, b, c, d):
-    return ((b and c) or (d ^ b)) ^ (a or (not (d or c))),
+if __name__ == '__main__':
+    start = time()
+    hof, pop, log = find_circuit(sum2, pop_size=5000, gens=100)
+    best_ind = hof[0]
+    str(best_ind)
+    plot_modi_tree(best_ind, visualize_output=True)
+    print(best_ind, best_ind.fitness)
 
-
-hof, pop, log = find_circuit(ex1, pop_size=5000, gens=100)
-best_ind = hof[0]
-str(best_ind)
-plot_modi_tree(best_ind, visualize_output=True)
-print(best_ind, best_ind.fitness)
+    print('Total time spent:', time() - start)

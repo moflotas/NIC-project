@@ -1,5 +1,6 @@
 import operator
 import numpy as np
+from pathos.multiprocessing import ProcessingPool as Pool
 
 
 from circuit import Circuit, int_output, arguments
@@ -64,9 +65,17 @@ def find_circuit(function: Callable, pop_size=300, gens=200, operators=None, ver
     mstats = tools.MultiStatistics(fitness=stats_fit, gates=stats_gates)
     mstats.register("avg", np.mean)
     mstats.register("max", np.max)
-
+    
+    cpu_count = 4
+    print(f"CPU count: {cpu_count}")
+    pool = Pool(cpu_count)
+    toolbox.register("map", pool.map)
+    
     pop = toolbox.population(n=pop_size)
     hof = tools.HallOfFame(1)
+
     pop, log = algorithms.eaSimple(pop, toolbox, 0.7, 0.6, gens, halloffame=hof, verbose=verbose, stats=mstats)
+    
+    pool.close()
 
     return hof, pop, log
